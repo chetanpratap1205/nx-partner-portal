@@ -3,6 +3,7 @@ import { getPartnerProfile } from "../actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Target, Share2, Info } from "lucide-react";
 import { ProfileForm } from "./profile-form";
+import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -12,7 +13,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div>
+      <FadeIn>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
           <div className="bg-slate-800 p-2 rounded-xl text-white shadow-sm">
             <User className="w-6 h-6" />
@@ -20,11 +21,11 @@ export default async function ProfilePage() {
           Partner Profile
         </h1>
         <p className="text-slate-500 mt-2 font-medium">Manage your personal information and view your business targets.</p>
-      </div>
+      </FadeIn>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="border-slate-200 shadow-sm">
+      <StaggerGroup className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <StaggerItem className="lg:col-span-2 space-y-6">
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b border-slate-100 bg-slate-50/50">
               <CardTitle className="text-lg font-bold text-slate-800">Personal Information</CardTitle>
               <CardDescription>Update your contact details and region.</CardDescription>
@@ -33,10 +34,10 @@ export default async function ProfilePage() {
               <ProfileForm partner={partner} />
             </CardContent>
           </Card>
-        </div>
+        </StaggerItem>
 
-        <div className="space-y-6">
-          <Card className="border-slate-200 shadow-sm bg-blue-50/50">
+        <StaggerItem className="space-y-6">
+          <Card className="border-slate-200 shadow-sm bg-blue-50/50 hover:shadow-md transition-shadow">
             <CardHeader className="pb-3 border-b border-blue-100">
               <CardTitle className="text-md font-bold text-blue-900 flex items-center gap-2">
                 <Target className="w-5 h-5 text-blue-600" /> Business Targets
@@ -60,7 +61,7 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
               <CardTitle className="text-md font-bold text-slate-800 flex items-center gap-2">
                 <Share2 className="w-5 h-5 text-slate-500" /> Referral Code
@@ -78,8 +79,8 @@ export default async function ProfilePage() {
               </p>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </StaggerItem>
+      </StaggerGroup>
     </div>
   );
 }
