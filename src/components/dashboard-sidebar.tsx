@@ -19,6 +19,7 @@ export function DashboardSidebar() {
     { name: "Overview", href: "/", icon: LayoutDashboard },
     { name: "Doctor Diary Leads", href: "/doctor-leads", icon: BriefcaseMedical },
     { name: "Commissions", href: "/doctor-commissions", icon: FileText },
+    { name: "Profile", href: "/profile", icon: Users },
   ];
 
   const lockedItems = [
