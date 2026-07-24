@@ -1,17 +1,30 @@
 import { createClient } from "@/utils/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { BriefcaseMedical, TrendingUp, BarChart3 } from "lucide-react";
 import { MultiProductShowcase } from "@/components/multi-product-showcase";
 import { getPartnerProfile } from "./actions";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
+import { getRoleCookie } from "@/app/actions/role-actions";
+import { FounderDashboard } from "./admin/founder-dashboard";
 
 // Dummy Activity icon since it's not imported at the top
 function Activity(props: any) {
   return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>;
 }
 
-export default async function DashboardPage() {
+export default async function UnifiedDashboardPage() {
+  const currentRole = await getRoleCookie();
+  
+  if (currentRole === 'superadmin') {
+    return <FounderDashboard />;
+  }
+
+  return <PartnerDashboard />;
+}
+
+async function PartnerDashboard() {
   const supabase = await createClient();
   const partner = await getPartnerProfile();
 
@@ -113,6 +126,24 @@ export default async function DashboardPage() {
           </Card>
         </StaggerItem>
       </StaggerGroup>
+
+      {/* Churn Risk Alerts */}
+      <FadeIn delay={0.25}>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="bg-red-100 p-2 rounded-lg text-red-600 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+            <div>
+              <h3 className="font-bold text-red-900 text-sm">Churn Risk Alert: Save your MRR!</h3>
+              <p className="text-sm text-red-700 mt-1 font-medium">Doctor Diary system has flagged <strong className="font-bold">1 clinic</strong> in your territory that hasn't logged in for 7 days. Reach out to prevent churn.</p>
+            </div>
+          </div>
+          <Button variant="outline" className="border-red-200 text-red-700 hover:bg-red-100 w-full sm:w-auto shrink-0 font-bold">
+            View At-Risk Clinics
+          </Button>
+        </div>
+      </FadeIn>
 
       {/* Analytics Chart */}
       <FadeIn delay={0.3}>

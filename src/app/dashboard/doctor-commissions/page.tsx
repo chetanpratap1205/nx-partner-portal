@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { getPartnerProfile } from "../actions";
 import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
 
+import { AnimatedMRR, PayoutCountdown, TierProgressBar } from "./dopamine-widgets";
+import { Zap } from "lucide-react";
+
 export default async function DoctorCommissionsPage() {
   const supabase = await createClient();
   const partner = await getPartnerProfile();
@@ -16,6 +19,19 @@ export default async function DoctorCommissionsPage() {
     .from('commission_payouts')
     .select('*')
     .eq('partner_id', partner.id);
+
+  // Fetch converted leads for MRR calc
+  const { data: convertedLeads } = await supabase
+    .from('doctor_leads')
+    .select('id')
+    .eq('assigned_to', partner.id)
+    .eq('status', 'converted');
+
+  const activeClinics = convertedLeads?.length || 0;
+  const currentMRR = activeClinics * 2500; // avg subscription
+  const currentTier = activeClinics < 6 ? 'Bronze' : activeClinics < 21 ? 'Silver' : activeClinics < 50 ? 'Gold' : 'Platinum';
+  const nextTierClinics = activeClinics < 6 ? 6 : activeClinics < 21 ? 21 : activeClinics < 50 ? 50 : null;
+  const tierProgress = nextTierClinics ? (activeClinics / nextTierClinics) * 100 : 100;
 
   const payouts = payoutsSafe || [];
 
@@ -38,19 +54,51 @@ export default async function DoctorCommissionsPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <FadeIn className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
-            <div className="bg-emerald-600 p-2 rounded-xl text-white shadow-sm">
-              <BadgeIndianRupee className="w-6 h-6" />
+      <FadeIn>
+        <div className="bg-[#050505] rounded-3xl p-8 relative overflow-hidden text-white shadow-2xl">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600/20 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-cyan-600/20 rounded-full blur-[100px] pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row gap-8 justify-between">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-xs font-bold uppercase tracking-wider mb-6">
+                <Zap className="w-3 h-3 text-emerald-400" />
+                Live MRR Tracker
+              </div>
+              
+              <div className="text-slate-400 font-medium mb-1">Your Monthly Recurring Revenue</div>
+              <div className="text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400">
+                <AnimatedMRR value={currentMRR} />
+              </div>
+              
+              <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl p-5">
+                <div className="flex justify-between items-end mb-2">
+                  <div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Current Tier</div>
+                    <div className="text-xl font-bold text-emerald-400">{currentTier} Partner</div>
+                  </div>
+                  {nextTierClinics && (
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-white">{activeClinics} / {nextTierClinics} Clinics</div>
+                      <div className="text-xs text-slate-400">until next tier</div>
+                    </div>
+                  )}
+                </div>
+                {nextTierClinics && (
+                  <TierProgressBar progress={tierProgress} />
+                )}
+              </div>
             </div>
-            Doctor Diary Commissions
-          </h1>
-          <p className="text-slate-500 mt-2 font-medium">Track your earnings, pending payouts, and performance history.</p>
+            
+            <div className="w-full md:w-80 shrink-0 flex flex-col justify-between">
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-sm text-amber-200/90 leading-relaxed">
+                <strong className="block mb-1 text-amber-400">Direct Bank Payouts</strong>
+                Payouts are processed directly via bank transfer by your NX Partner Manager outside of this portal. Status updates below may have a slight delay.
+              </div>
+              <PayoutCountdown />
+            </div>
+          </div>
         </div>
-        <Button variant="outline" className="border-slate-200 text-slate-700 font-semibold h-11 hover:bg-slate-50 transition-colors">
-          <Download className="w-4 h-4 mr-2" /> Download Report
-        </Button>
       </FadeIn>
 
       <StaggerGroup className="grid gap-6 sm:grid-cols-3">

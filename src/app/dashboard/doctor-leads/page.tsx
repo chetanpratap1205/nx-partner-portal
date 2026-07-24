@@ -36,9 +36,9 @@ export default async function DoctorLeadsPage() {
         <CreateLeadDialog />
       </div>
 
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
+      <div className="border border-slate-200 shadow-sm overflow-hidden bg-white rounded-xl">
         <LeadList initialLeads={displayLeads} />
-      </Card>
+      </div>
     </div>
   );
 }

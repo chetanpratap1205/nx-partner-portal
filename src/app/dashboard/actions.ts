@@ -171,3 +171,42 @@ export async function logLeadActivity(formData: FormData) {
   revalidatePath(`/doctor-leads/${lead_id}`);
   return { success: true };
 }
+
+export async function updateLeadStatusDirectly(leadId: string, newStatus: string) {
+  const supabase = await createClient();
+  const partner = await getPartnerProfile();
+
+  if (!partner) return { error: 'Unauthorized' };
+
+  // Verify lead belongs to partner
+  const { data: lead, error: leadError } = await supabase
+    .from('doctor_leads')
+    .select('id, status')
+    .eq('id', leadId)
+    .eq('assigned_to', partner.id)
+    .single();
+
+  if (leadError || !lead) return { error: 'Lead not found' };
+
+  if (lead.status !== newStatus) {
+    const { error: updateError } = await supabase
+      .from('doctor_leads')
+      .update({ status: newStatus })
+      .eq('id', leadId);
+      
+    if (updateError) return { error: updateError.message };
+
+    // Log the activity automatically
+    await supabase.from('lead_activities').insert({
+      lead_id: leadId,
+      partner_id: partner.id,
+      type: 'status_change',
+      notes: `Moved to ${newStatus.replace('_', ' ')}`,
+      previous_status: lead.status,
+      new_status: newStatus,
+    });
+  }
+
+  revalidatePath('/dashboard/doctor-leads');
+  return { success: true };
+}

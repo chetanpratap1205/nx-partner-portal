@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, LayoutDashboard, LogOut, Users, FileText, BriefcaseMedical, Wheat, Leaf } from "lucide-react";
+import { Activity, LayoutDashboard, LogOut, Users, FileText, BriefcaseMedical, Wheat, Leaf, Zap, BotMessageSquare, Trophy, Network, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 
-export function DashboardSidebar() {
+import { AppRole } from "@/app/actions/role-actions";
+
+export function DashboardSidebar({ currentRole = 'partner' }: { currentRole?: AppRole }) {
   const pathname = usePathname();
   const supabase = createClient();
 
@@ -15,12 +17,31 @@ export function DashboardSidebar() {
     window.location.href = "/login";
   };
 
-  const navItems = [
-    { name: "Overview", href: "/", icon: LayoutDashboard },
-    { name: "Doctor Diary Leads", href: "/doctor-leads", icon: BriefcaseMedical },
-    { name: "Commissions", href: "/doctor-commissions", icon: FileText },
-    { name: "Profile", href: "/profile", icon: Users },
-  ];
+  const getNavItems = () => {
+    if (currentRole === 'superadmin') {
+      return [
+        { name: "Global Overview", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Internal Team", href: "/dashboard/admin/team", icon: Shield },
+        { name: "All Partners", href: "/dashboard/admin/partners", icon: Network },
+        { name: "Global Pipeline", href: "/dashboard/admin/pipeline", icon: BriefcaseMedical },
+        { name: "Payouts & Finance", href: "/dashboard/admin/finance", icon: FileText },
+      ];
+    }
+    
+    // Partner items (default)
+    return [
+      { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Doctor Diary Leads", href: "/dashboard/doctor-leads", icon: BriefcaseMedical },
+      { name: "Sales Toolkit", href: "/dashboard/toolkit", icon: Zap },
+      { name: "AI Playbook", href: "/dashboard/playbook", icon: BotMessageSquare },
+      { name: "Leaderboards", href: "/dashboard/leaderboard", icon: Trophy },
+      { name: "Agency Team", href: "/dashboard/agency", icon: Network },
+      { name: "Commissions", href: "/dashboard/doctor-commissions", icon: FileText },
+      { name: "Profile", href: "/dashboard/profile", icon: Users },
+    ];
+  };
+
+  const navItems = getNavItems();
 
   const lockedItems = [
     { name: "Kisan Diary", icon: Wheat },

@@ -1,16 +1,16 @@
 {
   "id": "naturexpress-partner-portal",
-  "name": "NatureXpress Partners",
-  "short_name": "NX Partners",
+  "name": "NX Partner Hub",
+  "short_name": "NX Hub",
   "description": "Your field partner command center — manage leads, track commissions, and grow with NatureXpress.",
-  "start_url": "/field-portal",
+  "start_url": "/dashboard",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#2563eb",
   "background_color": "#f8fafc",
   "categories": ["business", "productivity", "sales"],
   "lang": "en-IN",
-  "scope": "/field-portal",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon-partner-192.png",
@@ -40,12 +40,12 @@
   "shortcuts": [
     {
       "name": "My Leads",
-      "url": "/field-portal/leads",
+      "url": "/dashboard/doctor-leads",
       "description": "View and manage your territory leads"
     },
     {
       "name": "Dashboard",
-      "url": "/field-portal",
+      "url": "/dashboard",
       "description": "View your performance dashboard"
     }
   ],
