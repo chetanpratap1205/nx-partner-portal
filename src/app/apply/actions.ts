@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 
 export async function submitApplication(formData: FormData) {
@@ -34,9 +35,16 @@ export async function submitApplication(formData: FormData) {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const referralCode = `NX-${baseCode}-${randomNum}`;
 
+    // Create an Admin client to bypass RLS for inserting the profile.
+    // When Email Confirmations are enabled, the user doesn't have an active session yet,
+    // so RLS would block this insert.
+    const adminSupabase = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // 2. Insert into growth_partners table.
-    // Set is_active to true to allow immediate login (frictionless onboarding).
-    const { error: dbError } = await supabase
+    const { error: dbError } = await adminSupabase
       .from('growth_partners')
       .insert({
         auth_user_id: userId,
@@ -55,6 +63,6 @@ export async function submitApplication(formData: FormData) {
     }
   }
 
-  // Redirect straight to dashboard for instant gratification
+  // Redirect straight to dashboard
   redirect("/dashboard");
 }
