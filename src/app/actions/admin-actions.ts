@@ -1,10 +1,10 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-import { getRoleCookie, AppRole } from "./role-actions";
+import { getUserRole, AppRole } from "./role-actions";
 
 export async function inviteInternalEmployee(formData: FormData) {
-  const currentRole = await getRoleCookie();
+  const currentRole = await getUserRole();
   
   // SECURITY BOUNDARY: ONLY SUPERADMIN CAN INVITE EMPLOYEES
   if (currentRole !== 'superadmin') {

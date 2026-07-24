@@ -1,14 +1,13 @@
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { MobileTopbar } from "@/components/mobile-topbar";
-import { RoleSwitcher } from "@/components/role-switcher";
-import { getRoleCookie } from "@/app/actions/role-actions";
+import { getUserRole } from "@/app/actions/role-actions";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const currentRole = await getRoleCookie();
+  const currentRole = await getUserRole();
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 relative">
@@ -27,8 +26,6 @@ export default async function DashboardLayout({
           </div>
         </main>
       </div>
-
-      <RoleSwitcher currentRole={currentRole} />
     </div>
   );
 }

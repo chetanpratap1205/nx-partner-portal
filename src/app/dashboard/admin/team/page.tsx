@@ -2,11 +2,11 @@ import { Shield, ShieldAlert, Users } from "lucide-react";
 import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
 import { InviteEmployeeForm } from "./invite-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getRoleCookie } from "@/app/actions/role-actions";
+import { getUserRole } from "@/app/actions/role-actions";
 import { redirect } from "next/navigation";
 
 export default async function InternalTeamPage() {
-  const currentRole = await getRoleCookie();
+  const currentRole = await getUserRole();
   
   if (currentRole !== 'superadmin') {
     redirect('/dashboard');

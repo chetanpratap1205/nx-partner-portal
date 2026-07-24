@@ -1,18 +1,29 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { createClient } from "@/utils/supabase/server";
 
 export type AppRole = 'superadmin' | 'partner' | 'internal_finance' | 'internal_sales';
 
-export async function setRoleCookie(role: AppRole) {
-  const cookieStore = await cookies();
-  cookieStore.set('nx_role', role, { maxAge: 60 * 60 * 24 * 7, path: '/' });
-  revalidatePath('/dashboard');
-}
+/**
+ * Gets the definitive role for the current authenticated user.
+ * This is the secure, server-side source of truth.
+ */
+export async function getUserRole(): Promise<AppRole> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-export async function getRoleCookie(): Promise<AppRole> {
-  const cookieStore = await cookies();
-  const role = cookieStore.get('nx_role')?.value as AppRole;
-  return role || 'partner'; // Default to partner
+  if (!user) {
+    return 'partner'; // Default fallback if not logged in
+  }
+
+  // 1. HARDCODED GOD-MODE (Founder)
+  if (user.email === 'chetanpratap1205@gmail.com') {
+    return 'superadmin';
+  }
+
+  // 2. CHECK FOR INTERNAL EMPLOYEE (In production, read from user_roles table or user_metadata)
+  // Example: if (user.user_metadata?.role) return user.user_metadata.role;
+
+  // 3. DEFAULT: EVERYONE ELSE IS A PARTNER
+  return 'partner';
 }

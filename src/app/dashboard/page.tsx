@@ -6,7 +6,7 @@ import { MultiProductShowcase } from "@/components/multi-product-showcase";
 import { getPartnerProfile } from "./actions";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
-import { getRoleCookie } from "@/app/actions/role-actions";
+import { getUserRole } from "@/app/actions/role-actions";
 import { FounderDashboard } from "./admin/founder-dashboard";
 
 // Dummy Activity icon since it's not imported at the top
@@ -15,7 +15,7 @@ function Activity(props: any) {
 }
 
 export default async function UnifiedDashboardPage() {
-  const currentRole = await getRoleCookie();
+  const currentRole = await getUserRole();
   
   if (currentRole === 'superadmin') {
     return <FounderDashboard />;
