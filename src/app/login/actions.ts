@@ -27,13 +27,14 @@ export async function login(data: z.infer<typeof loginSchema>) {
     return { error: error.message };
   }
   
-  // Verify if the user is a partner or admin
+  // Verify if the user is a partner, employee, or admin
   if (authData.user) {
-    // If the user is an admin from ENV, allow them
-    const adminIds = process.env.ADMIN_USER_IDS?.split(',') || [];
-    const isAdmin = adminIds.includes(authData.user.id);
+    const adminIds = (process.env.ADMIN_USER_IDS || '').split(',').map(id => id.trim());
+    const isFounder = authData.user.email === 'chetanpratap1205@gmail.com';
+    const isAdmin = isFounder || adminIds.includes(authData.user.id) || authData.user.user_metadata?.role === 'superadmin';
+    const isInternalEmployee = ['internal_finance', 'internal_sales'].includes(authData.user.user_metadata?.role);
 
-    if (!isAdmin) {
+    if (!isAdmin && !isInternalEmployee) {
       const { data: partnerData } = await supabase
         .from('growth_partners')
         .select('id, is_active')

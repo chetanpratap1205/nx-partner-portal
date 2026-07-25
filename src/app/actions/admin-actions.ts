@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getUserRole, AppRole } from "./role-actions";
 
 export async function inviteInternalEmployee(formData: FormData) {
@@ -19,25 +20,32 @@ export async function inviteInternalEmployee(formData: FormData) {
     throw new Error("Missing required fields");
   }
 
-  const supabase = await createClient();
-  
-  /**
-   * ENTERPRISE ARCHITECTURE NOTE:
-   * In a production environment, we would use the Supabase Admin API here:
-   * 
-   * const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-   *   data: { role: role, name: name }
-   * });
-   * 
-   * This bypasses the public /signup page entirely. The user receives an email with a 
-   * secure link to set their password. When they log in, their metadata.role is permanently
-   * set to the role you chose (e.g. 'internal_finance').
-   */
+  const adminSupabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  console.log(`[SECURE ADMIN ACTION] Inviting ${name} (${email}) as ${role}`);
-  
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
+  const { data, error } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
+    data: { role, name },
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`
+  });
+
+  if (error) {
+    console.error("Error inviting employee:", error);
+    // If inviteUserByEmail fails (e.g. SMTP not configured in Supabase), fallback to creating user directly
+    const { data: createData, error: createError } = await adminSupabase.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { role, name }
+    });
+
+    if (createError) {
+      return { success: false, message: createError.message || "Failed to invite employee." };
+    }
+
+    return { success: true, message: `Account created for ${name} (${email}) as ${role}. They can sign in using password reset or login.` };
+  }
+
+  console.log(`[SECURE ADMIN ACTION] Successfully invited ${name} (${email}) as ${role}`);
   return { success: true, message: `Successfully sent invitation to ${email}` };
 }
