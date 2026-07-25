@@ -8,6 +8,8 @@ import { DashboardCharts } from "@/components/dashboard-charts";
 import { FadeIn, StaggerGroup, StaggerItem } from "@/components/animations";
 import { getUserRole } from "@/app/actions/role-actions";
 import { FounderDashboard } from "./admin/founder-dashboard";
+import { TierProgressBar } from "@/components/tier-progress-bar";
+import Link from "next/link";
 
 // Dummy Activity icon since it's not imported at the top
 function Activity(props: any) {
@@ -46,10 +48,18 @@ async function PartnerDashboard() {
     .select('*')
     .eq('partner_id', partner.id);
     
-  const payouts = payoutsSafe || [];
+  const payouts = payoutsSafe || []
   const totalEarnedPaise = payouts
     .filter(p => p.status === 'paid')
     .reduce((sum, p) => sum + (p.commission_paise || 0), 0);
+
+  // Real churn risk: leads not contacted in last 7 days that are still 'new'
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const atRiskLeads = leads.filter(l =>
+    l.status !== 'converted' &&
+    l.status !== 'rejected' &&
+    l.created_at < sevenDaysAgo
+  );
 
   const formatRupees = (paise: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -127,23 +137,34 @@ async function PartnerDashboard() {
         </StaggerItem>
       </StaggerGroup>
 
-      {/* Churn Risk Alerts */}
-      <FadeIn delay={0.25}>
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="bg-red-100 p-2 rounded-lg text-red-600 mt-0.5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-            </div>
-            <div>
-              <h3 className="font-bold text-red-900 text-sm">Churn Risk Alert: Save your MRR!</h3>
-              <p className="text-sm text-red-700 mt-1 font-medium">Doctor Diary system has flagged <strong className="font-bold">1 clinic</strong> in your territory that hasn't logged in for 7 days. Reach out to prevent churn.</p>
-            </div>
-          </div>
-          <Button variant="outline" className="border-red-200 text-red-700 hover:bg-red-100 w-full sm:w-auto shrink-0 font-bold">
-            View At-Risk Clinics
-          </Button>
-        </div>
+      {/* Tier Progress Bar */}
+      <FadeIn delay={0.2}>
+        <TierProgressBar conversions={activeConversions} />
       </FadeIn>
+
+      {/* Real Churn Risk Alerts */}
+      {atRiskLeads.length > 0 && (
+        <FadeIn delay={0.25}>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="bg-red-100 p-2 rounded-lg text-red-600 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-red-900 text-sm">Churn Risk: {atRiskLeads.length} lead{atRiskLeads.length > 1 ? 's' : ''} going cold!</h3>
+                <p className="text-sm text-red-700 mt-1 font-medium">
+                  <strong className="font-bold">{atRiskLeads.map(l => l.clinic_name).slice(0, 2).join(', ')}{atRiskLeads.length > 2 ? ` +${atRiskLeads.length - 2} more` : ''}</strong> {atRiskLeads.length === 1 ? 'has' : 'have'} been inactive for 7+ days. Follow up now!
+                </p>
+              </div>
+            </div>
+            <Link href="/dashboard/doctor-leads">
+              <Button variant="outline" className="border-red-200 text-red-700 hover:bg-red-100 w-full sm:w-auto shrink-0 font-bold">
+                View At-Risk Leads
+              </Button>
+            </Link>
+          </div>
+        </FadeIn>
+      )}
 
       {/* Analytics Chart */}
       <FadeIn delay={0.3}>
@@ -178,3 +199,5 @@ async function PartnerDashboard() {
     </div>
   );
 }
+
+

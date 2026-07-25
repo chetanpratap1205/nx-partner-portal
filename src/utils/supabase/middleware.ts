@@ -45,11 +45,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If user is authenticated, check if they are a partner.
-  // Wait, if they hit "/", they should go to the dashboard. But dashboard is protected.
-  if (!user && request.nextUrl.pathname === "/") {
+  // If user is authenticated, redirect them away from auth pages to dashboard
+  if (user && (request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/apply"))) {
       const url = request.nextUrl.clone();
-      url.pathname = "/login";
+      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
   }
 
